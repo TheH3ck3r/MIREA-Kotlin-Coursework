@@ -64,10 +64,11 @@ fun VacancyDetailScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text("Отдел", color = AppColors.TextSecondary)
+                    Text("Компания", style = MaterialTheme.typography.labelLarge, color = AppColors.TextSecondary)
                     Text(
-                        text = vacancy.department,
-                        color = AppColors.TextDisabled
+                        text = vacancy.company,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = AppColors.TextPrimary
                     )
                 }
                 Column {

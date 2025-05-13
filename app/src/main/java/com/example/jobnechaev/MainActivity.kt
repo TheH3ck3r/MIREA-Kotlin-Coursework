@@ -1,6 +1,7 @@
 package com.example.jobnechaev
 
 import android.os.Bundle
+import android.os.Parcelable
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import com.example.jobnechaev.data.model.Application
 import com.example.jobnechaev.data.model.Vacancy
@@ -16,11 +18,15 @@ import com.example.jobnechaev.ui.screens.LoginScreen
 import com.example.jobnechaev.ui.screens.VacanciesScreen
 import com.example.jobnechaev.ui.screens.VacancyDetailScreen
 import com.example.jobnechaev.ui.theme.JobNechaevTheme
+import kotlinx.parcelize.Parcelize
 
-sealed class Screen {
+@Parcelize
+sealed class Screen : Parcelable {
     object Login : Screen()
     object VacanciesList : Screen()
+    @Parcelize
     data class VacancyDetail(val vacancy: Vacancy) : Screen()
+    @Parcelize
     data class Application(val vacancy: Vacancy) : Screen()
 }
 
@@ -33,7 +39,7 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    var currentScreen: Screen by remember { mutableStateOf(Screen.Login) }
+                    var currentScreen: Screen by rememberSaveable { mutableStateOf(Screen.Login) }
 
                     when (val screen = currentScreen) {
                         is Screen.Login -> {
