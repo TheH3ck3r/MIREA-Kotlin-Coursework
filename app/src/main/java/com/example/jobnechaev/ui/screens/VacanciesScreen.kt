@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalFocusManager
@@ -37,6 +38,8 @@ fun VacanciesScreen(
     val vacancies by viewModel.vacancies.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
+    val searchHistory by viewModel.searchHistory.collectAsStateWithLifecycle()
+    val isSearchFocused by viewModel.isSearchFocused.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
 
@@ -79,134 +82,187 @@ fun VacanciesScreen(
             }
         )
 
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { viewModel.updateSearchQuery(it) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .focusRequester(focusRequester)
-                .onFocusChanged { focusState ->
-                    // Можно добавить дополнительную логику при изменении фокуса
-                },
-            placeholder = { Text("Поиск вакансий...", color = AppColors.TextSecondary) },
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = AppColors.Item,
-                focusedContainerColor = AppColors.Item,
-                unfocusedBorderColor = AppColors.TextDisabled,
-                focusedBorderColor = AppColors.Primary,
-                unfocusedTextColor = AppColors.TextPrimary,
-                focusedTextColor = AppColors.TextPrimary
-            ),
-            leadingIcon = {
-                IconButton(
-                    onClick = { 
-                        focusRequester.requestFocus()
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = AppColors.TextSecondary
-                    )
-                }
-            },
-            trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
-                    IconButton(
-                        onClick = {
-                            viewModel.updateSearchQuery("")
-                            focusManager.clearFocus()
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Очистить",
-                            tint = AppColors.TextSecondary
-                        )
-                    }
-                }
-            },
-            singleLine = true
-        )
-
-        if (error != null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Column(
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { viewModel.updateSearchQuery(it) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(
-                            MaterialTheme.colorScheme.errorContainer,
-                            RoundedCornerShape(8.dp)
-                        )
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = error!!,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    Button(
-                        onClick = { viewModel.retryLastSearch() },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
-                        )
+                        .padding(16.dp)
+                        .focusRequester(focusRequester)
+                        .onFocusChanged { focusState ->
+                            viewModel.setSearchFocused(focusState.isFocused)
+                        },
+                    placeholder = { Text("Поиск вакансий...", color = AppColors.TextSecondary) },
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = AppColors.Item,
+                        focusedContainerColor = AppColors.Item,
+                        unfocusedBorderColor = AppColors.TextDisabled,
+                        focusedBorderColor = AppColors.Primary,
+                        unfocusedTextColor = AppColors.TextPrimary,
+                        focusedTextColor = AppColors.TextPrimary
+                    ),
+                    leadingIcon = {
+                        IconButton(onClick = { focusRequester.requestFocus() }) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Search",
+                                tint = AppColors.TextSecondary
+                            )
+                        }
+                    },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(
+                                onClick = {
+                                    viewModel.updateSearchQuery("")
+                                    focusManager.clearFocus()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Очистить",
+                                    tint = AppColors.TextSecondary
+                                )
+                            }
+                        }
+                    },
+                    singleLine = true
+                )
+
+                if (isSearchFocused && searchHistory.isNotEmpty()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = AppColors.Item
+                        ),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Обновить")
+                        Column(
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "История поиска",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = AppColors.TextPrimary
+                                )
+                                TextButton(
+                                    onClick = { viewModel.clearSearchHistory() }
+                                ) {
+                                    Text(
+                                        "Очистить историю",
+                                        color = AppColors.Primary
+                                    )
+                                }
+                            }
+                            searchHistory.forEach { historyItem ->
+                                TextButton(
+                                    onClick = { viewModel.onSearchHistoryItemClick(historyItem) },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = historyItem,
+                                        color = AppColors.TextSecondary,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 8.dp),
+                                        textAlign = TextAlign.Start
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
-            }
-        }
 
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = AppColors.Primary)
-            }
-        } else {
-            if (vacancies.isEmpty() && searchQuery.isNotEmpty() && error == null) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Ничего не найдено",
-                        color = AppColors.TextSecondary,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                if (error != null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    MaterialTheme.colorScheme.errorContainer,
+                                    RoundedCornerShape(8.dp)
+                                )
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = error!!,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                            Button(
+                                onClick = { viewModel.retryLastSearch() },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error
+                                )
+                            ) {
+                                Text("Обновить")
+                            }
+                        }
+                    }
                 }
-            } else if (searchQuery.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Введите текст для поиска вакансий",
-                        color = AppColors.TextSecondary,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-            } else {
-                // Vacancies list
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(vacancies) { vacancy ->
-                        VacancyCard(
-                            vacancy = vacancy,
-                            onClick = { onVacancyClick(vacancy) }
-                        )
+
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = AppColors.Primary)
+                    }
+                } else {
+                    if (vacancies.isEmpty() && searchQuery.isNotEmpty() && error == null) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Ничего не найдено",
+                                color = AppColors.TextSecondary,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    } else if (searchQuery.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Введите текст для поиска вакансий",
+                                color = AppColors.TextSecondary,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    } else {
+                        // Vacancies list
+                        LazyColumn(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(vacancies) { vacancy ->
+                                VacancyCard(
+                                    vacancy = vacancy,
+                                    onClick = { onVacancyClick(vacancy) }
+                                )
+                            }
+                        }
                     }
                 }
             }
