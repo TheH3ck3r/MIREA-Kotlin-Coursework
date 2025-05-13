@@ -11,6 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.jobnechaev.data.model.Application
 import com.example.jobnechaev.data.model.Vacancy
 import com.example.jobnechaev.ui.screens.ApplicationScreen
@@ -18,6 +19,7 @@ import com.example.jobnechaev.ui.screens.LoginScreen
 import com.example.jobnechaev.ui.screens.VacanciesScreen
 import com.example.jobnechaev.ui.screens.VacancyDetailScreen
 import com.example.jobnechaev.ui.theme.JobNechaevTheme
+import com.example.jobnechaev.ui.theme.ThemeViewModel
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -35,7 +37,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            JobNechaevTheme {
+            val themeViewModel: ThemeViewModel = viewModel()
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
+
+            JobNechaevTheme(darkTheme = isDarkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
@@ -51,14 +56,18 @@ class MainActivity : ComponentActivity() {
                                         Toast.LENGTH_SHORT
                                     ).show()
                                     currentScreen = Screen.VacanciesList
-                                }
+                                },
+                                isDarkTheme = isDarkTheme,
+                                onThemeToggle = { themeViewModel.toggleTheme() }
                             )
                         }
                         is Screen.VacanciesList -> {
                             VacanciesScreen(
                                 onVacancyClick = { vacancy ->
                                     currentScreen = Screen.VacancyDetail(vacancy)
-                                }
+                                },
+                                isDarkTheme = isDarkTheme,
+                                onThemeToggle = { themeViewModel.toggleTheme() }
                             )
                         }
                         is Screen.VacancyDetail -> {
@@ -69,7 +78,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onApplyClick = {
                                     currentScreen = Screen.Application(screen.vacancy)
-                                }
+                                },
+                                isDarkTheme = isDarkTheme,
+                                onThemeToggle = { themeViewModel.toggleTheme() }
                             )
                         }
                         is Screen.Application -> {
@@ -85,7 +96,9 @@ class MainActivity : ComponentActivity() {
                                         Toast.LENGTH_SHORT
                                     ).show()
                                     currentScreen = Screen.VacanciesList
-                                }
+                                },
+                                isDarkTheme = isDarkTheme,
+                                onThemeToggle = { themeViewModel.toggleTheme() }
                             )
                         }
                     }

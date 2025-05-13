@@ -29,7 +29,9 @@ import com.example.jobnechaev.ui.viewmodels.VacanciesViewModel
 @Composable
 fun VacanciesScreen(
     viewModel: VacanciesViewModel = viewModel(),
-    onVacancyClick: (Vacancy) -> Unit = {}
+    onVacancyClick: (Vacancy) -> Unit = {},
+    isDarkTheme: Boolean,
+    onThemeToggle: () -> Unit
 ) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val vacancies by viewModel.vacancies.collectAsStateWithLifecycle()
@@ -52,7 +54,29 @@ fun VacanciesScreen(
             title = { Text("Поиск вакансий", color = AppColors.TextPrimary) },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = AppColors.Item
-            )
+            ),
+            actions = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text(
+                        text = if (isDarkTheme) "Тёмная" else "Светлая",
+                        color = AppColors.TextPrimary,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Switch(
+                        checked = isDarkTheme,
+                        onCheckedChange = { onThemeToggle() },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = AppColors.Primary,
+                            checkedTrackColor = AppColors.Primary.copy(alpha = 0.5f),
+                            uncheckedThumbColor = AppColors.TextDisabled,
+                            uncheckedTrackColor = AppColors.TextDisabled.copy(alpha = 0.5f)
+                        )
+                    )
+                }
+            }
         )
 
         OutlinedTextField(

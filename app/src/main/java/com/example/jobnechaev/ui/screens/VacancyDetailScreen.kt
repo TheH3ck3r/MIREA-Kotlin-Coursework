@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -20,7 +21,9 @@ import com.example.jobnechaev.ui.theme.AppColors
 fun VacancyDetailScreen(
     vacancy: Vacancy,
     onBackClick: () -> Unit,
-    onApplyClick: () -> Unit
+    onApplyClick: () -> Unit,
+    isDarkTheme: Boolean,
+    onThemeToggle: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -40,7 +43,29 @@ fun VacancyDetailScreen(
             },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = AppColors.Item
-            )
+            ),
+            actions = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text(
+                        text = if (isDarkTheme) "Тёмная" else "Светлая",
+                        color = AppColors.TextPrimary,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Switch(
+                        checked = isDarkTheme,
+                        onCheckedChange = { onThemeToggle() },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = AppColors.Primary,
+                            checkedTrackColor = AppColors.Primary.copy(alpha = 0.5f),
+                            uncheckedThumbColor = AppColors.TextDisabled,
+                            uncheckedTrackColor = AppColors.TextDisabled.copy(alpha = 0.5f)
+                        )
+                    )
+                }
+            }
         )
 
         Column(

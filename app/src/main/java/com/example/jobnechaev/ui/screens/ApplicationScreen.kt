@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -19,7 +20,9 @@ import com.example.jobnechaev.ui.theme.AppColors
 @Composable
 fun ApplicationScreen(
     onBackClick: () -> Unit,
-    onSubmit: (Application) -> Unit
+    onSubmit: (Application) -> Unit,
+    isDarkTheme: Boolean,
+    onThemeToggle: () -> Unit
 ) {
     var fullName by remember { mutableStateOf("") }
     var age by remember { mutableStateOf("") }
@@ -32,7 +35,7 @@ fun ApplicationScreen(
             .background(AppColors.Background)
     ) {
         TopAppBar(
-            title = { Text("Заполнение заявки", color = AppColors.TextPrimary) },
+            title = { Text("Отклик на вакансию", color = AppColors.TextPrimary) },
             navigationIcon = {
                 IconButton(onClick = onBackClick) {
                     Icon(
@@ -44,7 +47,29 @@ fun ApplicationScreen(
             },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = AppColors.Item
-            )
+            ),
+            actions = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text(
+                        text = if (isDarkTheme) "Тёмная" else "Светлая",
+                        color = AppColors.TextPrimary,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Switch(
+                        checked = isDarkTheme,
+                        onCheckedChange = { onThemeToggle() },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = AppColors.Primary,
+                            checkedTrackColor = AppColors.Primary.copy(alpha = 0.5f),
+                            uncheckedThumbColor = AppColors.TextDisabled,
+                            uncheckedTrackColor = AppColors.TextDisabled.copy(alpha = 0.5f)
+                        )
+                    )
+                }
+            }
         )
 
         Column(
