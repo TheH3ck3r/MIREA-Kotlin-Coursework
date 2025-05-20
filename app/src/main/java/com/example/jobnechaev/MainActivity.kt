@@ -16,6 +16,7 @@ import com.example.jobnechaev.data.model.Application
 import com.example.jobnechaev.data.model.Vacancy
 import com.example.jobnechaev.ui.screens.ApplicationScreen
 import com.example.jobnechaev.ui.screens.LoginScreen
+import com.example.jobnechaev.ui.screens.RegisterScreen
 import com.example.jobnechaev.ui.screens.VacanciesScreen
 import com.example.jobnechaev.ui.screens.VacancyDetailScreen
 import com.example.jobnechaev.ui.theme.JobNechaevTheme
@@ -25,6 +26,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 sealed class Screen : Parcelable {
     object Login : Screen()
+    object Register : Screen()
     object VacanciesList : Screen()
     @Parcelize
     data class VacancyDetail(val vacancy: Vacancy) : Screen()
@@ -56,6 +58,27 @@ class MainActivity : ComponentActivity() {
                                         Toast.LENGTH_SHORT
                                     ).show()
                                     currentScreen = Screen.VacanciesList
+                                },
+                                onRegisterClick = {
+                                    currentScreen = Screen.Register
+                                },
+                                isDarkTheme = isDarkTheme,
+                                onThemeToggle = { themeViewModel.toggleTheme() }
+                            )
+                        }
+                        is Screen.Register -> {
+                            RegisterScreen(
+                                onRegisterClick = { email, username, password ->
+                                    // Здесь будет логика регистрации
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        "Регистрация успешна",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    currentScreen = Screen.Login
+                                },
+                                onBackClick = {
+                                    currentScreen = Screen.Login
                                 },
                                 isDarkTheme = isDarkTheme,
                                 onThemeToggle = { themeViewModel.toggleTheme() }

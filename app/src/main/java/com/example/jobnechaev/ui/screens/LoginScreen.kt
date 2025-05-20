@@ -16,6 +16,7 @@ import com.example.jobnechaev.ui.theme.AppColors
 @Composable
 fun LoginScreen(
     onLoginClick: (String, String) -> Unit,
+    onRegisterClick: () -> Unit,
     isDarkTheme: Boolean,
     onThemeToggle: () -> Unit
 ) {
@@ -149,6 +150,7 @@ fun LoginScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(top = 16.dp)
                             .height(48.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = AppColors.Primary,
@@ -158,13 +160,23 @@ fun LoginScreen(
                         Text("Войти")
                     }
 
+                    TextButton(
+                        onClick = onRegisterClick,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Нет аккаунта? Зарегистрироваться",
+                            color = AppColors.Primary
+                        )
+                    }
+
                     // Подсказка для тестирования
-                    Text(
-                        text = "Для входа используйте:\nЛогин: test\nПароль: test",
-                        color = AppColors.TextDisabled,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
+//                    Text(
+//                        text = "Для входа используйте:\nЛогин: test\nПароль: test",
+//                        color = AppColors.TextDisabled,
+//                        style = MaterialTheme.typography.bodySmall,
+//                        modifier = Modifier.padding(top = 16.dp)
+//                    )
                 }
             }
         }
