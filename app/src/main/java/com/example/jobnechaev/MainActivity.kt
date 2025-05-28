@@ -7,18 +7,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.jobnechaev.data.FavoriteVacanciesManager
 import com.example.jobnechaev.data.model.Application
 import com.example.jobnechaev.data.model.Vacancy
-import com.example.jobnechaev.ui.screens.ApplicationScreen
-import com.example.jobnechaev.ui.screens.LoginScreen
-import com.example.jobnechaev.ui.screens.RegisterScreen
-import com.example.jobnechaev.ui.screens.VacanciesScreen
-import com.example.jobnechaev.ui.screens.VacancyDetailScreen
+import com.example.jobnechaev.ui.screens.*
 import com.example.jobnechaev.ui.theme.JobNechaevTheme
 import com.example.jobnechaev.ui.theme.ThemeViewModel
 import kotlinx.parcelize.Parcelize
@@ -29,18 +27,25 @@ sealed class Screen : Parcelable {
     object Register : Screen()
     object VacanciesList : Screen()
     @Parcelize
+    data class Favorites(val previousScreen: Screen) : Screen()
+    @Parcelize
     data class VacancyDetail(val vacancy: Vacancy) : Screen()
     @Parcelize
     data class Application(val vacancy: Vacancy) : Screen()
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
+    private lateinit var favoriteVacanciesManager: FavoriteVacanciesManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        favoriteVacanciesManager = FavoriteVacanciesManager(this)
         enableEdgeToEdge()
         setContent {
             val themeViewModel: ThemeViewModel = viewModel()
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
+            var currentFavoriteState by remember { mutableStateOf(false) }
 
             JobNechaevTheme(darkTheme = isDarkTheme) {
                 Surface(
@@ -90,10 +95,27 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = Screen.VacancyDetail(vacancy)
                                 },
                                 isDarkTheme = isDarkTheme,
-                                onThemeToggle = { themeViewModel.toggleTheme() }
+                                onThemeToggle = { themeViewModel.toggleTheme() },
+                                onNavigateToFavorites = {
+                                    currentScreen = Screen.Favorites(screen)
+                                }
+                            )
+                        }
+                        is Screen.Favorites -> {
+                            FavoriteVacanciesScreen(
+                                favoriteVacancies = favoriteVacanciesManager.getFavoriteVacancies(),
+                                onVacancyClick = { vacancy ->
+                                    currentScreen = Screen.VacancyDetail(vacancy)
+                                },
+                                isDarkTheme = isDarkTheme,
+                                onThemeToggle = { themeViewModel.toggleTheme() },
+                                onBackClick = {
+                                    currentScreen = screen.previousScreen
+                                }
                             )
                         }
                         is Screen.VacancyDetail -> {
+                            currentFavoriteState = favoriteVacanciesManager.isFavorite(screen.vacancy)
                             VacancyDetailScreen(
                                 vacancy = screen.vacancy,
                                 onBackClick = {
@@ -103,7 +125,20 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = Screen.Application(screen.vacancy)
                                 },
                                 isDarkTheme = isDarkTheme,
-                                onThemeToggle = { themeViewModel.toggleTheme() }
+                                onThemeToggle = { themeViewModel.toggleTheme() },
+                                isFavorite = currentFavoriteState,
+                                onFavoriteClick = {
+                                    if (favoriteVacanciesManager.isFavorite(screen.vacancy)) {
+                                        favoriteVacanciesManager.removeVacancy(screen.vacancy)
+                                        currentFavoriteState = false
+                                    } else {
+                                        favoriteVacanciesManager.addVacancy(screen.vacancy)
+                                        currentFavoriteState = true
+                                    }
+                                },
+                                onNavigateToFavorites = {
+                                    currentScreen = Screen.Favorites(screen)
+                                }
                             )
                         }
                         is Screen.Application -> {
@@ -112,7 +147,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = Screen.VacancyDetail(screen.vacancy)
                                 },
                                 onSubmit = { application ->
-                                    // Здесь будет отправка заявки на бэкенд
+                                    // Здесь будет логика отправки заявки
                                     Toast.makeText(
                                         this@MainActivity,
                                         "Заявка отправлена",
@@ -121,7 +156,10 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = Screen.VacanciesList
                                 },
                                 isDarkTheme = isDarkTheme,
-                                onThemeToggle = { themeViewModel.toggleTheme() }
+                                onThemeToggle = { themeViewModel.toggleTheme() },
+                                onNavigateToFavorites = {
+                                    currentScreen = Screen.Favorites(screen)
+                                }
                             )
                         }
                     }

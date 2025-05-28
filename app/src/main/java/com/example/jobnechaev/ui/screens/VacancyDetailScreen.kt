@@ -6,8 +6,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -15,6 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.jobnechaev.data.model.Vacancy
 import com.example.jobnechaev.ui.theme.AppColors
+import com.example.jobnechaev.ui.components.AppTopBar
+import com.example.jobnechaev.ui.components.AppDrawer
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,184 +28,178 @@ fun VacancyDetailScreen(
     onBackClick: () -> Unit,
     onApplyClick: () -> Unit,
     isDarkTheme: Boolean,
-    onThemeToggle: () -> Unit
+    onThemeToggle: () -> Unit,
+    isFavorite: Boolean,
+    onFavoriteClick: () -> Unit,
+    onNavigateToFavorites: () -> Unit = {}
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppColors.Background)
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    AppDrawer(
+        drawerState = drawerState,
+        isDarkTheme = isDarkTheme,
+        onThemeToggle = onThemeToggle,
+        onNavigateToFavorites = onNavigateToFavorites
     ) {
-        TopAppBar(
-            title = { Text("Все вакансии", color = AppColors.TextPrimary) },
-            navigationIcon = {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back",
-                        tint = AppColors.TextPrimary
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = AppColors.Item
-            ),
-            actions = {
+        Scaffold(
+            topBar = {
+                AppTopBar(
+                    title = "Детали вакансии",
+                    isDarkTheme = isDarkTheme,
+                    onThemeToggle = onThemeToggle,
+                    onMenuClick = {
+                        scope.launch {
+                            drawerState.open()
+                        }
+                    },
+                    showBackButton = true,
+                    onBackClick = onBackClick
+                )
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(AppColors.Background)
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Заголовок и компания
+                Text(
+                    text = vacancy.title,
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = AppColors.TextPrimary
+                )
+
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(end = 8.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (isDarkTheme) "Тёмная" else "Светлая",
-                        color = AppColors.TextPrimary,
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                    Switch(
-                        checked = isDarkTheme,
-                        onCheckedChange = { onThemeToggle() },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = AppColors.Primary,
-                            checkedTrackColor = AppColors.Primary.copy(alpha = 0.5f),
-                            uncheckedThumbColor = AppColors.TextDisabled,
-                            uncheckedTrackColor = AppColors.TextDisabled.copy(alpha = 0.5f)
-                        )
-                    )
-                }
-            }
-        )
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-        ) {
-            Text(
-                text = vacancy.title,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = AppColors.TextPrimary,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 64.dp, end = 64.dp, bottom = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text("Компания", style = MaterialTheme.typography.labelLarge, color = AppColors.TextSecondary)
-                    Text(
                         text = vacancy.company,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = AppColors.TextPrimary
+                        style = MaterialTheme.typography.titleMedium,
+                        color = AppColors.TextSecondary
                     )
+                    
+                    IconButton(onClick = onFavoriteClick) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = if (isFavorite) "Удалить из избранного" else "Добавить в избранное",
+                            tint = if (isFavorite) AppColors.Primary else AppColors.TextPrimary
+                        )
+                    }
                 }
-                Column {
-                    Text("Локация", color = AppColors.TextSecondary)
-                    Text(
-                        text = vacancy.location,
-                        color = AppColors.TextDisabled
-                    )
-                }
-            }
 
-            // Level and Salary
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 64.dp, end = 64.dp, bottom = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text("Уровень", color = AppColors.TextSecondary)
-                    Text(
-                        text = vacancy.level,
-                        color = AppColors.TextDisabled
+                // Основная информация
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = AppColors.Item
                     )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        InfoRow("Локация", vacancy.location)
+                        InfoRow("Уровень", vacancy.level)
+                        InfoRow("Зарплата", vacancy.salary)
+                    }
                 }
-                Column {
-                    Text("ЗП", color = AppColors.TextSecondary)
-                    Text(
-                        text = vacancy.salary,
-                        color = AppColors.TextDisabled
-                    )
-                }
-            }
 
-            // Description
-            Text(
-                text = "Описание",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = AppColors.TextPrimary,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            Text(
-                text = vacancy.description,
-                color = AppColors.TextSecondary,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            // Requirements
-            Text(
-                text = "Требования",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = AppColors.TextPrimary,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            vacancy.requirements.forEach { requirement ->
-                Text(
-                    text = "• $requirement",
-                    color = AppColors.TextSecondary,
-                    modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
+                // Описание
+                Section(
+                    title = "Описание",
+                    content = vacancy.description
                 )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
 
-            // Tasks
-            Text(
-                text = "Задачи",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = AppColors.TextPrimary,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            vacancy.tasks.forEach { task ->
-                Text(
-                    text = "• $task",
-                    color = AppColors.TextSecondary,
-                    modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
+                // Требования
+                Section(
+                    title = "Требования",
+                    content = vacancy.requirements.joinToString("\n• ", "• ")
                 )
+
+                // Задачи
+                Section(
+                    title = "Задачи",
+                    content = vacancy.tasks.joinToString("\n• ", "• ")
+                )
+
+                // Кнопка отклика
+                Button(
+                    onClick = onApplyClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AppColors.Primary,
+                        contentColor = AppColors.Background
+                    )
+                ) {
+                    Text("Откликнуться")
+                }
+
+                // Добавляем отступ внизу для удобства прокрутки
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
+    }
+}
 
-        // Bottom buttons
+@Composable
+private fun InfoRow(
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            color = AppColors.TextSecondary,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            text = value,
+            color = AppColors.TextPrimary,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+@Composable
+private fun Section(
+    title: String,
+    content: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = AppColors.Item
+        )
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(AppColors.Primary)
-                .padding(32.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "Оставьте отклик",
-                color = AppColors.Background,
-                fontSize = 24.sp,
-                modifier = Modifier.padding(bottom = 8.dp)
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = AppColors.TextPrimary
             )
-            Button(
-                onClick = onApplyClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AppColors.Background,
-                    contentColor = AppColors.TextPrimary
-                )
-            ) {
-                Text("Откликнуться")
-            }
+            Text(
+                text = content,
+                style = MaterialTheme.typography.bodyMedium,
+                color = AppColors.TextSecondary,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 } 

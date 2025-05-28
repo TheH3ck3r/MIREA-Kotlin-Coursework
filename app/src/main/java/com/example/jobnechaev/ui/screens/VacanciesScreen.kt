@@ -25,6 +25,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.jobnechaev.data.model.Vacancy
 import com.example.jobnechaev.ui.theme.AppColors
 import com.example.jobnechaev.ui.viewmodels.VacanciesViewModel
+import com.example.jobnechaev.ui.components.AppTopBar
+import com.example.jobnechaev.ui.components.AppDrawer
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,7 +35,8 @@ fun VacanciesScreen(
     viewModel: VacanciesViewModel = viewModel(),
     onVacancyClick: (Vacancy) -> Unit = {},
     isDarkTheme: Boolean,
-    onThemeToggle: () -> Unit
+    onThemeToggle: () -> Unit,
+    onNavigateToFavorites: () -> Unit = {}
 ) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val vacancies by viewModel.vacancies.collectAsStateWithLifecycle()
@@ -42,225 +46,215 @@ fun VacanciesScreen(
     val isSearchFocused by viewModel.isSearchFocused.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        // Запрашиваем фокус при первом отображении экрана
         focusRequester.requestFocus()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppColors.Background)
+    AppDrawer(
+        drawerState = drawerState,
+        isDarkTheme = isDarkTheme,
+        onThemeToggle = onThemeToggle,
+        onNavigateToFavorites = onNavigateToFavorites
     ) {
-        TopAppBar(
-            title = { Text("Поиск вакансий", color = AppColors.TextPrimary) },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = AppColors.Item
-            ),
-            actions = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(end = 8.dp)
-                ) {
-                    Text(
-                        text = if (isDarkTheme) "Тёмная" else "Светлая",
-                        color = AppColors.TextPrimary,
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                    Switch(
-                        checked = isDarkTheme,
-                        onCheckedChange = { onThemeToggle() },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = AppColors.Primary,
-                            checkedTrackColor = AppColors.Primary.copy(alpha = 0.5f),
-                            uncheckedThumbColor = AppColors.TextDisabled,
-                            uncheckedTrackColor = AppColors.TextDisabled.copy(alpha = 0.5f)
-                        )
-                    )
-                }
-            }
-        )
-
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { viewModel.updateSearchQuery(it) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .focusRequester(focusRequester)
-                        .onFocusChanged { focusState ->
-                            viewModel.setSearchFocused(focusState.isFocused)
-                        },
-                    placeholder = { Text("Поиск вакансий...", color = AppColors.TextSecondary) },
-                    shape = RoundedCornerShape(8.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedContainerColor = AppColors.Item,
-                        focusedContainerColor = AppColors.Item,
-                        unfocusedBorderColor = AppColors.TextDisabled,
-                        focusedBorderColor = AppColors.Primary,
-                        unfocusedTextColor = AppColors.TextPrimary,
-                        focusedTextColor = AppColors.TextPrimary
-                    ),
-                    leadingIcon = {
-                        IconButton(onClick = { focusRequester.requestFocus() }) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Search",
-                                tint = AppColors.TextSecondary
-                            )
-                        }
-                    },
-                    trailingIcon = {
-                        if (searchQuery.isNotEmpty()) {
-                            IconButton(
-                                onClick = {
-                                    viewModel.updateSearchQuery("")
-                                    focusManager.clearFocus()
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Очистить",
-                                    tint = AppColors.TextSecondary
-                                )
-                            }
-                        }
-                    },
-                    singleLine = true
-                )
-
-                if (isSearchFocused && searchHistory.isNotEmpty()) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = AppColors.Item
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "История поиска",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = AppColors.TextPrimary
-                                )
-                                TextButton(
-                                    onClick = { viewModel.clearSearchHistory() }
-                                ) {
-                                    Text(
-                                        "Очистить историю",
-                                        color = AppColors.Primary
-                                    )
-                                }
-                            }
-                            searchHistory.forEach { historyItem ->
-                                TextButton(
-                                    onClick = { viewModel.onSearchHistoryItemClick(historyItem) },
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(
-                                        text = historyItem,
-                                        color = AppColors.TextSecondary,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 8.dp),
-                                        textAlign = TextAlign.Start
-                                    )
-                                }
-                            }
-                        }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(AppColors.Background)
+        ) {
+            AppTopBar(
+                title = "Поиск вакансий",
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = onThemeToggle,
+                onMenuClick = {
+                    scope.launch {
+                        drawerState.open()
                     }
                 }
+            )
 
-                if (error != null) {
-                    Box(
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { viewModel.updateSearchQuery(it) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp)
-                    ) {
-                        Column(
+                            .focusRequester(focusRequester)
+                            .onFocusChanged { focusState ->
+                                viewModel.setSearchFocused(focusState.isFocused)
+                            },
+                        placeholder = { Text("Поиск вакансий...", color = AppColors.TextSecondary) },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedContainerColor = AppColors.Item,
+                            focusedContainerColor = AppColors.Item,
+                            unfocusedBorderColor = AppColors.TextDisabled,
+                            focusedBorderColor = AppColors.Primary,
+                            unfocusedTextColor = AppColors.TextPrimary,
+                            focusedTextColor = AppColors.TextPrimary
+                        ),
+                        leadingIcon = {
+                            IconButton(onClick = { focusRequester.requestFocus() }) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Search",
+                                    tint = AppColors.TextSecondary
+                                )
+                            }
+                        },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(
+                                    onClick = {
+                                        viewModel.updateSearchQuery("")
+                                        focusManager.clearFocus()
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Очистить",
+                                        tint = AppColors.TextSecondary
+                                    )
+                                }
+                            }
+                        },
+                        singleLine = true
+                    )
+
+                    if (isSearchFocused && searchHistory.isNotEmpty()) {
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(
-                                    MaterialTheme.colorScheme.errorContainer,
-                                    RoundedCornerShape(8.dp)
-                                )
-                                .padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .padding(horizontal = 16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = AppColors.Item
+                            ),
+                            shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text(
-                                text = error!!,
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
-                            Button(
-                                onClick = { viewModel.retryLastSearch() },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.error
-                                )
+                            Column(
+                                modifier = Modifier.padding(vertical = 8.dp)
                             ) {
-                                Text("Обновить")
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "История поиска",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = AppColors.TextPrimary
+                                    )
+                                    TextButton(
+                                        onClick = { viewModel.clearSearchHistory() }
+                                    ) {
+                                        Text(
+                                            "Очистить историю",
+                                            color = AppColors.Primary
+                                        )
+                                    }
+                                }
+                                searchHistory.forEach { historyItem ->
+                                    TextButton(
+                                        onClick = { viewModel.onSearchHistoryItemClick(historyItem) },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(
+                                            text = historyItem,
+                                            color = AppColors.TextSecondary,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 8.dp),
+                                            textAlign = TextAlign.Start
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
-                }
 
-                if (isLoading) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = AppColors.Primary)
-                    }
-                } else {
-                    if (vacancies.isEmpty() && searchQuery.isNotEmpty() && error == null) {
+                    if (error != null) {
                         Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
                         ) {
-                            Text(
-                                text = "Ничего не найдено",
-                                color = AppColors.TextSecondary,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        MaterialTheme.colorScheme.errorContainer,
+                                        RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = error!!,
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(bottom = 16.dp)
+                                )
+                                Button(
+                                    onClick = { viewModel.retryLastSearch() },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.error
+                                    )
+                                ) {
+                                    Text("Обновить")
+                                }
+                            }
                         }
-                    } else if (searchQuery.isEmpty()) {
+                    }
+
+                    if (isLoading) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = "Введите текст для поиска вакансий",
-                                color = AppColors.TextSecondary,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
+                            CircularProgressIndicator(color = AppColors.Primary)
                         }
                     } else {
-                        // Vacancies list
-                        LazyColumn(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            items(vacancies) { vacancy ->
-                                VacancyCard(
-                                    vacancy = vacancy,
-                                    onClick = { onVacancyClick(vacancy) }
+                        if (vacancies.isEmpty() && searchQuery.isNotEmpty() && error == null) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Ничего не найдено",
+                                    color = AppColors.TextSecondary,
+                                    style = MaterialTheme.typography.bodyLarge
                                 )
+                            }
+                        } else if (searchQuery.isEmpty()) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Введите текст для поиска вакансий",
+                                    color = AppColors.TextSecondary,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        } else {
+                            // Vacancies list
+                            LazyColumn(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                items(vacancies) { vacancy ->
+                                    VacancyCard(
+                                        vacancy = vacancy,
+                                        onClick = { onVacancyClick(vacancy) }
+                                    )
+                                }
                             }
                         }
                     }

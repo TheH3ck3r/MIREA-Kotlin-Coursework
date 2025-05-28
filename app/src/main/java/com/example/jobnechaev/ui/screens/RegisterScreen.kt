@@ -32,44 +32,6 @@ fun RegisterScreen(
             .fillMaxSize()
             .background(AppColors.Background)
     ) {
-        TopAppBar(
-            title = { Text("Регистрация", color = AppColors.TextPrimary) },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = AppColors.Item
-            ),
-            navigationIcon = {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Назад",
-                        tint = AppColors.TextPrimary
-                    )
-                }
-            },
-            actions = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(end = 8.dp)
-                ) {
-                    Text(
-                        text = if (isDarkTheme) "Тёмная" else "Светлая",
-                        color = AppColors.TextPrimary,
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                    Switch(
-                        checked = isDarkTheme,
-                        onCheckedChange = { onThemeToggle() },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = AppColors.Primary,
-                            checkedTrackColor = AppColors.Primary.copy(alpha = 0.5f),
-                            uncheckedThumbColor = AppColors.TextDisabled,
-                            uncheckedTrackColor = AppColors.TextDisabled.copy(alpha = 0.5f)
-                        )
-                    )
-                }
-            }
-        )
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -191,6 +153,16 @@ fun RegisterScreen(
                         )
                     ) {
                         Text("Зарегистрироваться")
+                    }
+
+                    TextButton(
+                        onClick = onBackClick,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Уже есть аккаунт? Войти",
+                            color = AppColors.Primary
+                        )
                     }
                 }
             }

@@ -29,35 +29,6 @@ fun LoginScreen(
             .fillMaxSize()
             .background(AppColors.Background)
     ) {
-        TopAppBar(
-            title = { Text("Авторизация", color = AppColors.TextPrimary) },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = AppColors.Item
-            ),
-            actions = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(end = 8.dp)
-                ) {
-                    Text(
-                        text = if (isDarkTheme) "Тёмная" else "Светлая",
-                        color = AppColors.TextPrimary,
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                    Switch(
-                        checked = isDarkTheme,
-                        onCheckedChange = { onThemeToggle() },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = AppColors.Primary,
-                            checkedTrackColor = AppColors.Primary.copy(alpha = 0.5f),
-                            uncheckedThumbColor = AppColors.TextDisabled,
-                            uncheckedTrackColor = AppColors.TextDisabled.copy(alpha = 0.5f)
-                        )
-                    )
-                }
-            }
-        )
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -105,7 +76,6 @@ fun LoginScreen(
                         isError = error.isNotEmpty()
                     )
 
-                    // Поле пароля
                     OutlinedTextField(
                         value = password,
                         onValueChange = { 
@@ -128,7 +98,6 @@ fun LoginScreen(
                         isError = error.isNotEmpty()
                     )
 
-                    // Сообщение об ошибке
                     if (error.isNotEmpty()) {
                         Text(
                             text = error,
@@ -137,7 +106,6 @@ fun LoginScreen(
                         )
                     }
 
-                    // Кнопка входа
                     Button(
                         onClick = {
                             if (username.isEmpty() || password.isEmpty()) {
@@ -169,14 +137,6 @@ fun LoginScreen(
                             color = AppColors.Primary
                         )
                     }
-
-                    // Подсказка для тестирования
-//                    Text(
-//                        text = "Для входа используйте:\nЛогин: test\nПароль: test",
-//                        color = AppColors.TextDisabled,
-//                        style = MaterialTheme.typography.bodySmall,
-//                        modifier = Modifier.padding(top = 16.dp)
-//                    )
                 }
             }
         }
