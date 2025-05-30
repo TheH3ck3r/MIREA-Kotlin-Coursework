@@ -26,7 +26,8 @@ fun ApplicationScreen(
     onSubmit: (Application) -> Unit,
     isDarkTheme: Boolean,
     onThemeToggle: () -> Unit,
-    onNavigateToFavorites: () -> Unit = {}
+    onNavigateToFavorites: () -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     var fullName by remember { mutableStateOf("") }
     var age by remember { mutableStateOf("") }
@@ -39,7 +40,8 @@ fun ApplicationScreen(
         drawerState = drawerState,
         isDarkTheme = isDarkTheme,
         onThemeToggle = onThemeToggle,
-        onNavigateToFavorites = onNavigateToFavorites
+        onNavigateToFavorites = onNavigateToFavorites,
+        onLogout = onLogout
     ) {
         Scaffold(
             topBar = {

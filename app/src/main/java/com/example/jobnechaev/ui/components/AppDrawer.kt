@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +20,7 @@ fun AppDrawer(
     isDarkTheme: Boolean,
     onThemeToggle: () -> Unit,
     onNavigateToFavorites: () -> Unit = {},
+    onLogout: () -> Unit = {},
     content: @Composable () -> Unit
 ) {
     ModalNavigationDrawer(
@@ -72,6 +74,27 @@ fun AppDrawer(
                     },
                     selected = false,
                     onClick = onThemeToggle,
+                    colors = NavigationDrawerItemDefaults.colors(
+                        unselectedContainerColor = AppColors.Item,
+                        selectedContainerColor = AppColors.Primary.copy(alpha = 0.1f)
+                    )
+                )
+                NavigationDrawerItem(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.ExitToApp,
+                            contentDescription = "Выйти из аккаунта",
+                            tint = AppColors.TextPrimary
+                        )
+                    },
+                    label = {
+                        Text(
+                            "Выйти из аккаунта",
+                            color = AppColors.TextPrimary
+                        )
+                    },
+                    selected = false,
+                    onClick = onLogout,
                     colors = NavigationDrawerItemDefaults.colors(
                         unselectedContainerColor = AppColors.Item,
                         selectedContainerColor = AppColors.Primary.copy(alpha = 0.1f)

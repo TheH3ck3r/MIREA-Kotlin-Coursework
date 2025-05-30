@@ -36,7 +36,8 @@ fun VacanciesScreen(
     onVacancyClick: (Vacancy) -> Unit = {},
     isDarkTheme: Boolean,
     onThemeToggle: () -> Unit,
-    onNavigateToFavorites: () -> Unit = {}
+    onNavigateToFavorites: () -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val vacancies by viewModel.vacancies.collectAsStateWithLifecycle()
@@ -57,7 +58,8 @@ fun VacanciesScreen(
         drawerState = drawerState,
         isDarkTheme = isDarkTheme,
         onThemeToggle = onThemeToggle,
-        onNavigateToFavorites = onNavigateToFavorites
+        onNavigateToFavorites = onNavigateToFavorites,
+        onLogout = onLogout
     ) {
         Column(
             modifier = Modifier
@@ -297,7 +299,7 @@ fun VacancyCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 48.dp, end = 48.dp, top = 16.dp),
+                    .padding(top = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
@@ -321,8 +323,7 @@ fun VacancyCard(
             // Level and Salary
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 48.dp, end = 48.dp),
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {

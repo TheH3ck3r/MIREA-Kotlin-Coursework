@@ -23,7 +23,8 @@ fun FavoriteVacanciesScreen(
     onVacancyClick: (Vacancy) -> Unit,
     isDarkTheme: Boolean,
     onThemeToggle: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onLogout: () -> Unit = {}
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -31,7 +32,8 @@ fun FavoriteVacanciesScreen(
     AppDrawer(
         drawerState = drawerState,
         isDarkTheme = isDarkTheme,
-        onThemeToggle = onThemeToggle
+        onThemeToggle = onThemeToggle,
+        onLogout = onLogout
     ) {
         Scaffold(
             topBar = {

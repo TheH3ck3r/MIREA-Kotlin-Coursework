@@ -110,7 +110,7 @@ fun LoginScreen(
                         onClick = {
                             if (username.isEmpty() || password.isEmpty()) {
                                 error = "Заполните все поля"
-                            } else if (username == "test" && password == "test") {
+                            } else if (username == "TheHacker" && password == "123456") {
                                 onLoginClick(username, password)
                             } else {
                                 error = "Неверный логин или пароль"

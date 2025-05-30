@@ -31,7 +31,8 @@ fun VacancyDetailScreen(
     onThemeToggle: () -> Unit,
     isFavorite: Boolean,
     onFavoriteClick: () -> Unit,
-    onNavigateToFavorites: () -> Unit = {}
+    onNavigateToFavorites: () -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -40,7 +41,8 @@ fun VacancyDetailScreen(
         drawerState = drawerState,
         isDarkTheme = isDarkTheme,
         onThemeToggle = onThemeToggle,
-        onNavigateToFavorites = onNavigateToFavorites
+        onNavigateToFavorites = onNavigateToFavorites,
+        onLogout = onLogout
     ) {
         Scaffold(
             topBar = {

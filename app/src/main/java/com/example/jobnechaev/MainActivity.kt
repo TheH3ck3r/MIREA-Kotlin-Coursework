@@ -98,6 +98,9 @@ class MainActivity : ComponentActivity() {
                                 onThemeToggle = { themeViewModel.toggleTheme() },
                                 onNavigateToFavorites = {
                                     currentScreen = Screen.Favorites(screen)
+                                },
+                                onLogout = {
+                                    currentScreen = Screen.Login
                                 }
                             )
                         }
@@ -111,6 +114,9 @@ class MainActivity : ComponentActivity() {
                                 onThemeToggle = { themeViewModel.toggleTheme() },
                                 onBackClick = {
                                     currentScreen = screen.previousScreen
+                                },
+                                onLogout = {
+                                    currentScreen = Screen.Login
                                 }
                             )
                         }
@@ -138,6 +144,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateToFavorites = {
                                     currentScreen = Screen.Favorites(screen)
+                                },
+                                onLogout = {
+                                    currentScreen = Screen.Login
                                 }
                             )
                         }
@@ -159,6 +168,9 @@ class MainActivity : ComponentActivity() {
                                 onThemeToggle = { themeViewModel.toggleTheme() },
                                 onNavigateToFavorites = {
                                     currentScreen = Screen.Favorites(screen)
+                                },
+                                onLogout = {
+                                    currentScreen = Screen.Login
                                 }
                             )
                         }
